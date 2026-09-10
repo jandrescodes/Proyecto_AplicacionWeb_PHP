@@ -19,5 +19,6 @@ final class LayoutViewModel extends ViewModel
         public readonly int $currentYear,
         public readonly array $navigationItems,
         public readonly array $toastMessages,
+        public readonly bool $withDataTables = false,
     ) {}
 }

@@ -34,6 +34,6 @@ final class AuditLogController
             usuarios: $this->userRepository->all(),
             filtroEntidad: $entidad,
             filtroUsuarioId: $usuarioId,
-        ));
+        ), withDataTables: true);
     }
 }

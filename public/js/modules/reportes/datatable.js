@@ -1,4 +1,9 @@
 $(document).ready(function () {
+    if (typeof $.fn.DataTable !== 'function') {
+        var tableEl = document.getElementById('tabla_reportes');
+        if (tableEl) { tableEl.style.visibility = 'visible'; }
+        return;
+    }
     var table = $('#tabla_reportes').DataTable({
         responsive: true,
         autoWidth: false,

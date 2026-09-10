@@ -2,13 +2,13 @@
     <div class="row mb-4 align-items-center">
         <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
             <h1 class="h3 mb-0 text-dark">
-                <i class="bi bi-shield-lock-fill me-2 text-primary"></i>Log de Auditoría
+                <i class="bi bi-shield-lock-fill me-2 text-primary" aria-hidden="true"></i>Log de Auditoría
             </h1>
         </div>
         <div class="col-md-6">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-0 justify-content-center justify-content-md-end">
-                    <li class="breadcrumb-item"><a href="<?= e(app_url('/')); ?>" class="text-decoration-none"><i class="bi bi-house-door-fill"></i> Inicio</a></li>
+                    <li class="breadcrumb-item"><a href="<?= e(app_url('/')); ?>" class="text-decoration-none"><i class="bi bi-house-door-fill" aria-hidden="true"></i> Inicio</a></li>
                     <li class="breadcrumb-item active" aria-current="page">Log de Auditoría</li>
                 </ol>
             </nav>
@@ -19,7 +19,7 @@
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-header bg-white py-3 border-bottom">
             <h6 class="mb-0 fw-bold text-secondary">
-                <i class="bi bi-funnel-fill me-2"></i>Filtros
+                <i class="bi bi-funnel-fill me-2" aria-hidden="true"></i>Filtros
             </h6>
         </div>
         <div class="card-body">
@@ -50,10 +50,10 @@
                     <div class="col-sm-12 col-md-4 d-flex">
                         <div class="btn-group">
                             <button type="submit" class="btn btn-primary btn-sm px-4">
-                                <i class="bi bi-search me-1"></i>Filtrar
+                                <i class="bi bi-search me-1" aria-hidden="true"></i>Filtrar
                             </button>
                             <a href="<?= e(app_url('/audit-log')); ?>" class="btn btn-outline-secondary btn-sm px-4">
-                                <i class="bi bi-x-circle me-1"></i>Limpiar
+                                <i class="bi bi-x-circle me-1" aria-hidden="true"></i>Limpiar
                             </a>
                         </div>
                     </div>
@@ -66,14 +66,14 @@
     <div class="card shadow-sm border-0">
         <div class="card-header bg-white py-3 border-bottom">
             <h5 class="card-title mb-0 fw-bold text-primary">
-                <i class="bi bi-list-ul me-2"></i>Registros de auditoría
+                <i class="bi bi-list-ul me-2" aria-hidden="true"></i>Registros de auditoría
             </h5>
         </div>
         <div class="card-body">
-            <table class="table table-bordered table-hover table-sm" id="tabla_audit_log" style="visibility: hidden;">
+            <table class="table table-bordered table-hover table-sm" id="tabla_audit_log" data-datatable>
                 <thead class="table-light">
                     <tr>
-                        <th scope="col" class="text-center" style="width: 60px;">#</th>
+                        <th scope="col" class="text-center table-col-num">#</th>
                         <th scope="col">Fecha</th>
                         <th scope="col">Usuario</th>
                         <th scope="col">Módulo</th>

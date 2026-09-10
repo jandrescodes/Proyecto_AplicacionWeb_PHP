@@ -32,7 +32,7 @@ final class TurnoController
         Auth::requireAdmin();
         View::renderWith('turnos/index', new TurnoIndexViewModel(
             listaTurnos: $this->service->all(),
-        ));
+        ), withDataTables: true);
     }
 
     public function create(): void

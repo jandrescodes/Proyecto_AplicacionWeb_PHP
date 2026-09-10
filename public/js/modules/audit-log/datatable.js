@@ -1,4 +1,9 @@
 $(document).ready(function () {
+    if (typeof $.fn.DataTable !== 'function') {
+        var tableEl = document.getElementById('tabla_audit_log');
+        if (tableEl) { tableEl.style.visibility = 'visible'; }
+        return;
+    }
     $('#tabla_audit_log').DataTable({
         responsive: true,
         autoWidth: false,

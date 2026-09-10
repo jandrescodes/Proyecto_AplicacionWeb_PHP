@@ -1,16 +1,15 @@
-.bd-placeholder-img {
-  font-size: 1.125rem;
-  text-anchor: middle;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
+:root {
+  --sg-primary: #0575b8;
+  --sg-primary-dark: #142e3d;
+  --sg-accent: #04a1fc;
+  --sg-bg: #f8f9fa;
+  --sg-surface: #fff;
+  --sg-text: #212529;
+  --sg-text-soft: #6c757d;
+  --sg-border: #dee2e6;
 
-@media (min-width: 768px) {
-  .bd-placeholder-img-lg {
-    font-size: 3.5rem;
-  }
+  --bs-primary: var(--sg-primary);
+  --bs-primary-rgb: 5, 117, 184;
 }
 
 body {
@@ -21,31 +20,25 @@ body {
 
 main {
   flex-grow: 1;
-  background-color: #f8f9fa;
+  background-color: var(--sg-bg);
 }
 
-#barra_navegacion {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.skip-link {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2000;
+  padding: 0.5rem 1rem;
+  background: var(--sg-primary-dark);
+  color: var(--sg-surface);
+  text-decoration: none;
+  border-radius: 0 0 0.25rem 0;
+  transform: translateY(-120%);
+  transition: transform 0.2s ease-in-out;
 }
 
-#barra_navegacion .navbar-nav {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.nav-brand-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.logout-form .btn-link {
-  display: inline-flex;
-  align-items: center;
-  min-height: 38px;
+.skip-link:focus {
+  transform: translateY(0);
 }
 
 .swal2-confirm {
@@ -60,4 +53,70 @@ main {
   background: transparent;
   padding: 0;
   margin: 0;
+}
+
+.table-col-num {
+  width: 50px;
+}
+
+.table-col-placa {
+  width: 80px;
+}
+
+.table-col-acciones {
+  width: 120px;
+}
+
+.table-avatar {
+  width: 35px;
+  height: 35px;
+  flex-shrink: 0;
+}
+
+.btn-primary {
+  --bs-btn-bg: var(--sg-primary);
+  --bs-btn-border-color: var(--sg-primary);
+  --bs-btn-hover-bg: var(--sg-primary-dark);
+  --bs-btn-hover-border-color: var(--sg-primary-dark);
+  --bs-btn-active-bg: var(--sg-primary-dark);
+  --bs-btn-active-border-color: var(--sg-primary-dark);
+}
+
+/* Botones de exportación de DataTables (toolbar generada por buttons.bootstrap5) */
+div.dt-buttons .btn {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* La tabla se oculta solo mientras JS está activo; sin JS (o si DataTables falla y
+   el módulo la re-muestra) queda visible con los datos renderizados en servidor. */
+html:not(.no-js) table[data-datatable] {
+  visibility: hidden;
+}
+
+/* Área táctil expandida (WCAG 2.5.8): pseudo-elemento fuera del flujo,
+   no altera la caja visible */
+.touch-lg,
+.touch-row {
+  position: relative;
+}
+
+.touch-lg::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: max(100%, 44px);
+  height: max(100%, 44px);
+}
+
+.touch-row::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: max(100%, 44px);
 }

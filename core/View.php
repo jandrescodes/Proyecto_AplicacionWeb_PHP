@@ -10,7 +10,7 @@ use RuntimeException;
 
 final class View
 {
-    public static function renderWith(string $view, ViewModel $vm, bool $withLayout = true): void
+    public static function renderWith(string $view, ViewModel $vm, bool $withLayout = true, bool $withDataTables = false): void
     {
         $basePath = dirname(__DIR__);
         $viewPath = $basePath . '/app/Presentation/Views/' . $view . '.php';
@@ -20,7 +20,7 @@ final class View
         }
 
         if ($withLayout) {
-            $layout = self::buildLayoutViewModel();
+            $layout = self::buildLayoutViewModel($withDataTables);
             require $basePath . '/app/Presentation/Views/layout/header.php';
         }
 
@@ -31,7 +31,7 @@ final class View
         }
     }
 
-    private static function buildLayoutViewModel(): LayoutViewModel
+    private static function buildLayoutViewModel(bool $withDataTables = false): LayoutViewModel
     {
         $baseUrl = app_url('/');
         $navigationItems = [
@@ -73,6 +73,7 @@ final class View
             currentYear: (int) date('Y'),
             navigationItems: $navigationItems,
             toastMessages: $toastMessages,
+            withDataTables: $withDataTables,
         );
     }
 

@@ -32,7 +32,7 @@ final class ConductorController
         Auth::requireAdmin();
         View::renderWith('conductores/index', new ConductorIndexViewModel(
             listaConductores: $this->service->all(),
-        ));
+        ), withDataTables: true);
     }
 
     public function create(): void

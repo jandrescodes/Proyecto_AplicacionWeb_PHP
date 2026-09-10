@@ -33,7 +33,7 @@ final class PropietarioController
 
         View::renderWith('propietarios/index', new PropietarioIndexViewModel(
             listaPropietarios: $this->service->all(),
-        ));
+        ), withDataTables: true);
     }
 
     public function create(): void

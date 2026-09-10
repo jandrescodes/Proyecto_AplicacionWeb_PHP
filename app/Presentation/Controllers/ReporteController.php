@@ -33,6 +33,6 @@ final class ReporteController
             filtros: $filtros,
             marcas: $this->service->marcasDisponibles(),
             propietarios: $this->service->propietarioOptions(),
-        ));
+        ), withDataTables: true);
     }
 }

@@ -1,7 +1,8 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" class="no-js">
 
 <head>
+  <script>document.documentElement.classList.remove('no-js');</script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Sistema de Gestión</title>
@@ -17,19 +18,21 @@
   <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- DataTables con Bootstrap 5 + Responsive -->
+  <!-- DataTables con Bootstrap 5 + Responsive (solo en páginas con tabla) -->
+  <?php if ($layout->withDataTables): ?>
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" />
   <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.4.1/css/responsive.bootstrap5.min.css" />
 
   <!-- DataTables Buttons + ColVis -->
   <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap5.min.css" />
-  <link rel="stylesheet" href="https://cdn.datatables.net/colreorder/1.6.2/css/colReorder.bootstrap5.min.css" />
+  <?php endif; ?>
 
   <!-- DataTables Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
   <header>
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top bg-dark shadow">
       <div class="container-fluid">
@@ -53,14 +56,14 @@
           <hr class="d-lg-none text-white-50">
           <ul class="navbar-nav align-items-lg-center">
             <li class="nav-item text-white-50 px-lg-3 mb-2 mb-lg-0">
-              <i class="bi bi-person-circle me-1"></i><?= e($layout->fullName); ?>
+              <i class="bi bi-person-circle me-1" aria-hidden="true"></i><?= e($layout->fullName); ?>
 
             </li>
             <li class="nav-item">
               <form method="post" action="<?= e(app_url('/logout')); ?>" class="d-inline">
                 <input type="hidden" name="_token" value="<?= e($layout->csrfToken); ?>">
-                <button type="submit" class="btn btn-outline-light btn-sm w-100">
-                  <i class="bi bi-box-arrow-right me-1"></i> Cerrar Sesión
+                <button type="submit" class="btn btn-outline-light btn-sm w-100 touch-lg">
+                  <i class="bi bi-box-arrow-right me-1" aria-hidden="true"></i> Cerrar Sesión
                 </button>
               </form>
             </li>
@@ -69,4 +72,4 @@
       </div>
     </nav>
   </header>
-  <main>
+  <main id="contenido" tabindex="-1">

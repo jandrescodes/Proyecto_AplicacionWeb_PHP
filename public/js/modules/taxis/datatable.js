@@ -1,4 +1,9 @@
 $(document).ready(function () {
+    if (typeof $.fn.DataTable !== 'function') {
+        var tableEl = document.getElementById('tabla_taxis');
+        if (tableEl) { tableEl.style.visibility = 'visible'; }
+        return;
+    }
     var table = $('#tabla_taxis').DataTable({
         responsive: true,
         autoWidth: false,

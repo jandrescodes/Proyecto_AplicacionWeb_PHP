@@ -32,7 +32,7 @@ final class UsuarioController
         Auth::requireAdmin();
         View::renderWith('usuarios/index', new UsuarioIndexViewModel(
             listaUsuarios: $this->service->all(),
-        ));
+        ), withDataTables: true);
     }
 
     public function create(): void

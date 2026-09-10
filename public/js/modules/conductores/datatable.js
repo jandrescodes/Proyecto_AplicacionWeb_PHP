@@ -1,4 +1,9 @@
 $(document).ready(function () {
+    if (typeof $.fn.DataTable !== 'function') {
+        var tableEl = document.getElementById('tabla_conductores');
+        if (tableEl) { tableEl.style.visibility = 'visible'; }
+        return;
+    }
     var table = $('#tabla_conductores').DataTable({
         responsive: true,
         autoWidth: false,

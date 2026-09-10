@@ -33,7 +33,7 @@ final class TaxiController
 
         View::renderWith('taxis/index', new TaxiIndexViewModel(
             listaTaxis: $this->service->allWithOwner(),
-        ));
+        ), withDataTables: true);
     }
 
     public function create(): void

@@ -2,14 +2,14 @@
     <div class="row mb-4 align-items-center">
         <div class="col-md-6">
             <h1 class="h3 mb-0 text-dark">
-                <i class="bi bi-pencil-square me-2"></i>Editar Propietario
+                <i class="bi bi-pencil-square me-2" aria-hidden="true"></i>Editar Propietario
             </h1>
         </div>
         <div class="col-md-6">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-0 justify-content-md-end">
-                    <li class="breadcrumb-item"><a href="<?= e(app_url('/')); ?>" class="text-decoration-none"><i class="bi bi-house-door-fill"></i> Inicio</a></li>
-                    <li class="breadcrumb-item"><a href="<?= e(app_url('/propietarios')); ?>" class="text-decoration-none"><i class="bi bi-person-badge-fill"></i> Propietarios</a></li>
+                    <li class="breadcrumb-item"><a href="<?= e(app_url('/')); ?>" class="text-decoration-none"><i class="bi bi-house-door-fill" aria-hidden="true"></i> Inicio</a></li>
+                    <li class="breadcrumb-item"><a href="<?= e(app_url('/propietarios')); ?>" class="text-decoration-none"><i class="bi bi-person-badge-fill" aria-hidden="true"></i> Propietarios</a></li>
                     <li class="breadcrumb-item active" aria-current="page">Editar</li>
                 </ol>
             </nav>
@@ -24,14 +24,14 @@
                 <div class="card shadow-sm border-0">
                     <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0 fw-bold text-primary">
-                            <i class="bi bi-person-gear me-2"></i>Modificar Registro
+                            <i class="bi bi-person-gear me-2" aria-hidden="true"></i>Modificar Registro
                         </h5>
                         <span class="badge bg-light text-primary border px-3 py-2">ID: <?= e($vm->propietario->id); ?></span>
                     </div>
                     <div class="card-body p-4">
                         <?php if (!empty($vm->error)) : ?>
                             <div class="alert alert-danger d-flex align-items-center" role="alert">
-                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                <i class="bi bi-exclamation-triangle-fill me-2" aria-hidden="true"></i>
                                 <div><?= e($vm->error); ?></div>
                             </div>
                         <?php endif; ?>
@@ -39,7 +39,7 @@
                         <div class="mb-3">
                             <label for="nombre" class="form-label fw-bold text-muted small text-uppercase">Nombres Completos</label>
                             <div class="input-group">
-                                <span class="input-group-text bg-light"><i class="bi bi-person"></i></span>
+                                <span class="input-group-text bg-light"><i class="bi bi-person" aria-hidden="true"></i></span>
                                 <input type="text" value="<?= e($vm->propietario->nombre); ?>" class="form-control" name="nombre" id="nombre" required>
                             </div>
                         </div>
@@ -47,7 +47,7 @@
                         <div class="mb-4">
                             <label for="telefono" class="form-label fw-bold text-muted small text-uppercase">Teléfono de Contacto</label>
                             <div class="input-group">
-                                <span class="input-group-text bg-light"><i class="bi bi-telephone"></i></span>
+                                <span class="input-group-text bg-light"><i class="bi bi-telephone" aria-hidden="true"></i></span>
                                 <input type="text" value="<?= e($vm->propietario->telefono); ?>" class="form-control" name="telefono" id="telefono" required>
                             </div>
                         </div>
@@ -57,12 +57,12 @@
                         <div class="row">
                             <div class="col-12 col-sm-auto mb-2 mb-sm-0">
                                 <a class="btn btn-light border shadow-sm w-100" href="<?= e(app_url('/propietarios')); ?>" role="button">
-                                    <i class="bi bi-x-circle"></i> Cancelar
+                                    <i class="bi bi-x-circle" aria-hidden="true"></i> Cancelar
                                 </a>
                             </div>
                             <div class="col-12 col-sm-auto">
                                 <button type="submit" class="btn btn-success shadow-sm w-100 text-white">
-                                    <i class="bi bi-save"></i> Actualizar Cambios
+                                    <i class="bi bi-save" aria-hidden="true"></i> Actualizar Cambios
                                 </button>
                             </div>
                         </div>
