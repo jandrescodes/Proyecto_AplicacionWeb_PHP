@@ -63,7 +63,7 @@ database/
 
 - `Container` — DI container with `bind()`, `singleton()`, and reflection-based autowiring. Exposes `Container::setInstance()` / `Container::getInstance()` for global static access (used by `Auth`)
 - `Router` — static GET/POST routing; resolves paths with or without `/public` prefix; supports `?route=` fallback
-- `View` — `View::renderWith(string $view, ViewModel $vm)` is the only rendering method; no `extract()`, data is passed as a typed `ViewModel`
+- `View` — `View::renderWith(string $view, ViewModel $vm, bool $withLayout = true, bool $withDataTables = false)` is the only rendering method; no `extract()`, data is passed as a typed `ViewModel`. `withDataTables` controla si el layout carga los assets de DataTables (CSS+JS, todos con `defer`); pasarlo a `true` solo en los index que renderizan una tabla (ver "Frontend del layout admin")
 - `Auth` — session-based auth; `Auth::requireAdmin()` redirects if not logged in or if `$_SESSION['is_admin']` is not `true` (backed by the `is_admin TINYINT` column in `usuarios`). `Auth::isAdmin(): bool` exposes the flag. `Auth::id(): int` returns `$_SESSION['user_id']` — use this in user-scoped actions instead of reading id from URL/POST (prevents IDOR). `Auth::requireLogin()` also attempts transparent re-login via remember-me cookie before redirecting. `Auth::issueRememberCookie(int $userId)` issues the persistent cookie. Uses `Container::getInstance()` internally to resolve `AuthServiceInterface`.
 - `Csrf` — `Csrf::token()` generates token, `Csrf::validateOrFail()` checks it in POST handlers
 - `Flash` — one-time session messages (`success`/`error`); consumed by `View::buildLayoutViewModel()` and rendered as toasts
@@ -145,6 +145,24 @@ Rutas:
 
 **Formulario:** 4 inputs (`date` + `time` × 2). El Controller concatena fecha y hora con `:00` al final antes de pasarlos al Service (`'Y-m-d H:i:00'`) porque `<input type="time">` no envía segundos.
 
+## Frontend del layout admin (DataTables, a11y, tokens)
+
+**Carga condicional de DataTables (`withDataTables`):** `View::renderWith()` recibe un 4.º parámetro `bool $withDataTables = false`. Solo las páginas index que renderizan una tabla lo pasan en `true` (los 7 módulos); `header.php`/`footer.php` envuelven todos los CSS/JS de DataTables (con `defer`) en `if ($layout->withDataTables)`. Nunca cargar assets de DataTables en vistas sin tabla. El CSS de `colReorder` se removió a propósito.
+
+**Progressive enhancement de la tabla (`data-datatable`):** el `<html>` del layout lleva `class="no-js"` y un script temprano la remueve; `layout.css` oculta con `html:not(.no-js) table[data-datatable] { visibility: hidden; }`. La tabla lleva el atributo `data-datatable` — nunca `style="visibility:hidden"` inline. Se revela por `initComplete` de DataTables; si el plugin no carga (CDN caído), cada `datatable.js` arranca con un guard `if (typeof $.fn.DataTable !== 'function') { ...re-muestra la tabla...; return; }`. Sin JS la regla CSS no aplica: la tabla es visible con datos server-rendered.
+
+**Touch targets (WCAG 2.5.8):** `.touch-lg` (44×44) y `.touch-row` (alto 44, ancho natural) en `layout.css` expanden el área clicable con un pseudo-elemento `::before` fuera del flujo — no forzar `min-height` en la caja visible. `div.dt-buttons .btn` (export de DataTables) también mide ≥44px.
+
+**A11y de vistas:**
+- Botones de ícono-only: `aria-label` con el identificador de la entidad (`title` queda como tooltip) y `aria-hidden="true"` en el `<i>` decorativo.
+- Todo `<i class="bi ...">` decorativo (h1, breadcrumb, input-group, botones) lleva `aria-hidden="true"`.
+- Error de servidor en formularios: alert con `id="form-error-alert" tabindex="-1"`; los inputs reciben `aria-invalid="true" aria-describedby="form-error-alert"` (patrón `$hasError`/`$errorAttrs`) y un script corto enfoca el alert.
+- Skip-link en `header.php` apuntando a `<main id="contenido" tabindex="-1">`.
+
+**Tokens y marca:** `layout.css` define `:root` con `--sg-*` y alinea los roles semánticos de Bootstrap con la marca (`--bs-primary`, `--bs-btn-*` de `.btn-primary` → `#0575b8`). El login es superficie aparte: solo `style.css` (mismos valores `--sg-*`). Utilidades de tabla: `table-col-num/placa/acciones`, `table-avatar`.
+
+**Alcance de la auditoría a11y:** el detector axe-core (skill impeccable) se ejecutó solo sobre `auth/login` y `usuarios`. Los demás módulos (conductores, propietarios, taxis, turnos, reportes, audit-log) recibieron los mismos fixes sistémicos y se verificaron con Playwright, pero no tienen score propio de la auditoría — ante un cambio en esos módulos, re-auditarlos antes de dar por cerrado.
+
 ## Conventions
 
 - All PHP files use `declare(strict_types=1)`
@@ -160,3 +178,6 @@ Rutas:
 - **Error → CLAUDE.md**: after fixing any mistake (architecture, convention, pattern, any kind of error), document it here before considering the task done — so it never repeats
 - **No Blade syntax in PHP views**: never use `{{-- ... --}}` comments in `.php` templates — they render as literal text. Use `<?php /* ... */ ?>` or HTML `<!-- ... -->` instead
 - **`<input type="time">` envía `HH:MM` sin segundos**: cuando un Domain Model valida con formato `Y-m-d H:i:s`, el Controller debe concatenar `:00` al valor de la hora antes de pasarlo al Service (e.g. `trim($fecha . ' ' . $hora) . ':00'`). Nunca asumir que el browser envía segundos.
+- **Echo en vistas:** usar siempre `<?= e(...)` — nunca `<?php echo e(...)`
+- **Íconos decorativos (`<i class="bi ...">`):** siempre llevan `aria-hidden="true"`; los botones de ícono-only usan `aria-label` con el identificador (no depender solo de `title`)
+- **Tabla con DataTables:** atributo `data-datatable`, nunca `style="visibility:hidden"` inline (ver "Frontend del layout admin")

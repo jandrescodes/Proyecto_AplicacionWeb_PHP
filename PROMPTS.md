@@ -52,7 +52,7 @@ _______________
 [Restricciones]
 - Seguir el patrón del módulo Taxi como referencia (TaxiController / TaxiService / TaxiRepository)
 - Cada vista recibe un ViewModel tipado (extends ViewModel) — nunca arrays ni extract()
-- View::renderWith(string $view, ViewModel $vm) es el único método de renderizado
+- View::renderWith(string $view, ViewModel $vm, bool $withLayout = true, bool $withDataTables = false) es el único método de renderizado; conDataTables=true solo en los index con tabla (ver CLAUDE.md "Frontend del layout admin")
 - Métodos de controlador válidos: index(), create(), store(), edit(), update(), destroy()
 - CSRF obligatorio en todo POST: Csrf::validateOrFail((string) $this->request->post('_token', ''))
 - Rutas admin-only: Auth::requireAdmin() al inicio de cada método
@@ -65,6 +65,7 @@ _______________
 - Registrar bindings en config/bindings.php
 - URLs internas en vistas: siempre app_url('/ruta') — nunca $layout->baseUrl ni rutas hardcodeadas
 - delete.js: cada módulo tiene su propio ES module en public/js/modules/{modulo}/delete.js; el botón debe llevar data-nombre con el identificador visible (nombre, usuario o placa) para mensajes contextuales en SweetAlert2; no existe layout.js compartido
+- Frontend a11y: botones de ícono-only con aria-label (el <i> con aria-hidden="true"); todo <i class="bi ..."> decorativo lleva aria-hidden; tablas con DataTables usan el atributo data-datatable (nunca style="visibility:hidden" inline) y el index pasa withDataTables=true a renderWith
 
 [Formato de salida]
 _______________
@@ -104,7 +105,7 @@ Descripción: [describe qué debe hacer]
 [Restricciones]
 - Usar el módulo Taxi como referencia exacta de patrón
 - Crear ViewModel por cada vista (index, create, edit) extendiendo App\Presentation\ViewModels\ViewModel
-- View::renderWith(string $view, ViewModel $vm) — única forma de renderizar
+- View::renderWith(string $view, ViewModel $vm, bool $withLayout = true, bool $withDataTables = false) — única forma de renderizar; el index con tabla pasa true (inicia DataTables)
 - CSRF en todo POST: Csrf::validateOrFail((string) $this->request->post('_token', ''))
 - Auth::requireAdmin() en métodos que lo requieran
 - Validaciones de campos propias del modelo en Model::create() lanzando InvalidArgumentException
@@ -124,6 +125,7 @@ Descripción: [describe qué debe hacer]
 - Nunca comparar Auth::username() a un string para verificar rol admin — siempre usar Auth::isAdmin()
 - Auth::id(): int existe en core/Auth.php — devuelve $_SESSION['user_id']
 - Vistas PHP: nunca usar comentarios {{-- ... --}} de Blade — renderiza como texto literal; usar <!-- --> o <?php /* */ ?>
+- Frontend a11y: botones de ícono-only con aria-label y <i aria-hidden="true">; tablas con DataTables usan data-datatable + withDataTables=true (nunca style="visibility:hidden" inline); ver CLAUDE.md "Frontend del layout admin"
 
 [Formato de salida]
 Devuelve en este orden:
@@ -319,7 +321,7 @@ Devuelve en este orden:
 
 ---
 
-_Última actualización: 2026-06-19_
+_Última actualización: 2026-09-10_
 _Mantener sincronizado con CLAUDE.md al inicio de cada sesión._
 
 ---
@@ -374,8 +376,8 @@ Crear los unit tests para el nuevo módulo:
 | Servidor  | XAMPP (Apache + MySQL)                                                                                                                  |
 | Backend   | PHP 8.x, PDO, Composer (PSR-4)                                                                                                          |
 | Framework | Propio en `core/` (Router, Container, Auth, Csrf, Flash, View)                                                                          |
-| Frontend  | Bootstrap 5.3, Bootstrap Icons, icheck-bootstrap 3                                                                                      |
-| Tablas    | DataTables 1.13 + Responsive + Buttons (PDF/Excel/CSV/Print/Colvis); dom personalizado con drawCallback → ComponentUtils.initTooltips() |
+| Frontend  | Bootstrap 5.3, Bootstrap Icons, tokens de marca `--sg-*` (layout.css / style.css); icheck-bootstrap 3 solo en el login                                                                          |
+| Tablas    | DataTables 1.13 + Responsive + Buttons (PDF/Excel/CSV/Print/Colvis); carga condicional por página (flag `withDataTables`) y fallback sin JS/`data-datatable` |
 | Alertas   | SweetAlert2                                                                                                                             |
 | Logs      | Monolog (rotación diaria, 14 días)                                                                                                      |
 | Auth      | Sesión PHP + cookie remember-me (SHA-256, rotación por uso)                                                                             |

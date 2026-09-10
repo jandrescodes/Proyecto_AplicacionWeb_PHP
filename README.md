@@ -63,6 +63,9 @@ Registro inmutable de todas las acciones del sistema, con filtros por módulo y 
 - **Modelos de dominio ricos:** cada modelo expone `Model::create()` con sus propias validaciones; los Services orquestan reglas cross-domain (existencia de FK, solapamientos) y delegan el resto al modelo.
 - **Sin JOINs cross-domain:** los repositorios consultan una sola tabla; el ensamblado entre dominios ocurre en memoria en el Service (p. ej. `TaxiService::allWithOwner()`).
 - **Vistas tipadas:** `View::renderWith()` recibe siempre un `ViewModel` tipado — nunca `extract()` ni arrays crudos.
+- **Carga condicional de DataTables:** los assets de DataTables (CSS + JS, ~1.3 MB con exportadores) solo se cargan en las páginas index que renderizan tablas; el resto del panel no paga ese costo.
+- **Accesibilidad y operación sin JS:** skip-link al contenido, botones de ícono con `aria-label` + íconos decorativos `aria-hidden`, touch targets ≥ 44px (WCAG 2.5.8), error de servidor de formulario asociado a los campos (`aria-invalid`/`aria-describedby`), y fallback real: si DataTables no carga (p. ej. CDN caído) la tabla sigue visible con los datos renderizados por el servidor.
+- **Tokens de marca:** `--sg-*` en `:root` de `layout.css` y `style.css` alinean los roles semánticos de Bootstrap (`--bs-primary`, `.btn-primary` → `#0575b8`) con la identidad visual del sistema.
 - **Gestión AJAX de eliminación:** Fetch API + SweetAlert2, con `delete.js` propio por módulo y mensaje de confirmación contextual (nombre/placa/usuario del registro).
 - **Perfil de usuario:** cualquier usuario autenticado edita su nombre, correo y contraseña en `/perfil`; el id siempre se resuelve vía `Auth::id()`, nunca por URL o POST (IDOR-safe).
 - **Reportes de flota:** estadísticas generales + tabla combinada (taxi + propietario + conductor), filtros server-side por marca/propietario, exportación PDF/Excel/CSV/Print vía DataTables Buttons.
