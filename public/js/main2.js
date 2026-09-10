@@ -1,14 +1,16 @@
-var contador = true;
-
-function vista() {
-    var texto = document.getElementById("verPassword");
-    if (contador == true) {
-        texto.className = "bi bi-eye-slash-fill verPassword";
-        document.getElementById("input").type = "text";
-        contador = false;
-    } else {
-        texto.className = "bi bi-eye-fill verPassword";
-        document.getElementById("input").type = "password";
-        contador = true;
+(() => {
+    const toggle = document.getElementById('verPassword');
+    const input = document.getElementById('contrasena');
+    if (!toggle || !input) {
+        return;
     }
-}
+
+    let visible = false;
+
+    toggle.addEventListener('click', () => {
+        visible = !visible;
+        input.type = visible ? 'text' : 'password';
+        toggle.setAttribute('aria-pressed', String(visible));
+        toggle.setAttribute('aria-label', visible ? 'Ocultar contraseña' : 'Mostrar contraseña');
+    });
+})();
