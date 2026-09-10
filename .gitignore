@@ -34,3 +34,5 @@ bash.exe.stackdump
 
 # Docs (tracked intentionally — do not ignore)
 !docs/
+# playwright-cli session artifacts
+.playwright-cli/
