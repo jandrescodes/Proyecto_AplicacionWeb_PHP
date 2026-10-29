@@ -8,8 +8,10 @@ interface AuthServiceInterface
 {
     public function attempt(string $username, string $password): ?array;
 
-    /** @return array{Usuario: string, Nombres: string, is_admin: bool}|null */
+    /** @return array{Usuario: string, Nombres: string, is_admin: bool, clave_ver: string}|null */
     public function findSessionUser(int $userId): ?array;
+
+    public function accountExists(string $username): bool;
 
     public function issueRememberToken(int $userId): string;
 

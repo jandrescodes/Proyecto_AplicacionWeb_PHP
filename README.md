@@ -142,7 +142,7 @@ APP_URL=http://localhost/Proyecto_AplicacionWeb_PHP/public
 SESSION_LIFETIME=120        # duración en minutos (default: 120)
 
 # Proxy inverso
-TRUST_PROXY=false           # true solo si un proxy de confianza reescribe X-Forwarded-Proto
+TRUST_PROXY=false           # true solo detrás de UN proxy de confianza (X-Forwarded-Proto/For)
 
 # Recuérdame
 REMEMBER_ME_ENABLED=true
@@ -236,7 +236,8 @@ Request → Router → Controller → Service → Repository (PDO) → ViewModel
 - Cookie de sesión con `HttpOnly`, `SameSite=Lax`, `Secure` (bajo HTTPS) y `use_strict_mode`.
 - Límite de intentos de login (`Core\LoginThrottle`): 5 intentos por par usuario+IP y 20 por IP cada 15 min, respuesta 429, con reserva atómica bajo `flock` y sin bloquear la cuenta ante intentos desde otras IPs; los fallos quedan en el log de auditoría. Un login con usuario inexistente tarda lo mismo que uno con clave errónea (sin enumeración por timing).
 - La sesión se revalida contra la BD en cada petición: un usuario eliminado pierde el acceso y los cambios de rol aplican de inmediato.
-- Cambiar la contraseña invalida el token de "recuérdame".
+- Cambiar la contraseña invalida el token de "recuérdame" y todas las demás sesiones abiertas del usuario (la actual conserva el acceso con un id de sesión nuevo).
+- El log de auditoría no guarda el usuario de un login fallido si no existe la cuenta (a veces se escribe ahí una contraseña).
 - Solo `public/` es accesible por HTTP (`.htaccess` raíz); `.env`, `.git` y `vendor` devuelven 403.
 - Cabeceras `X-Content-Type-Options`, `X-Frame-Options` y `Referrer-Policy`; scripts de CDN con Subresource Integrity (`integrity` + `crossorigin`).
 - `X-Forwarded-Proto` solo se acepta con `TRUST_PROXY=true`.

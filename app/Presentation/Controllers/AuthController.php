@@ -53,7 +53,9 @@ final class AuthController
         $user = $this->service->attempt($username, $password);
 
         if ($user === null) {
-            $this->auditService->log(AuditActions::AUTH_LOGIN_FAILED, 'auth', null, 'Login fallido: @' . mb_substr($username, 0, 50));
+            // El campo usuario a veces contiene una contraseña: solo se registra si coincide con una cuenta real.
+            $detail = $this->service->accountExists($username) ? ': @' . mb_substr($username, 0, 50) : '';
+            $this->auditService->log(AuditActions::AUTH_LOGIN_FAILED, 'auth', null, 'Login fallido' . $detail);
             View::renderWith('auth/login', new LoginViewModel(
                 mensaje: 'Error: El usuario o contraseña son incorrectos',
             ), false);

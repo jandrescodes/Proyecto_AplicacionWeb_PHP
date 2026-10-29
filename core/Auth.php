@@ -23,6 +23,7 @@ final class Auth
         $_SESSION['usuario']  = (string) ($user['Usuario'] ?? '');
         $_SESSION['Nombres']  = (string) ($user['Nombres'] ?? '');
         $_SESSION['is_admin'] = (bool) ($user['is_admin'] ?? false);
+        $_SESSION['clave_ver'] = (string) ($user['clave_ver'] ?? '');
     }
 
     public static function logout(): void
@@ -102,11 +103,21 @@ final class Auth
         self::sendCookie($plain, time() + self::cookieTtl());
     }
 
+    /** Tras cambiar la propia clave: rota el id de sesión y conserva solo esta sesión; las demás quedan invalidadas. */
+    public static function refreshAfterPasswordChange(): void
+    {
+        Session::start();
+        session_regenerate_id(true);
+
+        $user = self::service()->findSessionUser((int) ($_SESSION['user_id'] ?? 0));
+        $_SESSION['clave_ver'] = $user['clave_ver'] ?? '';
+    }
+
     // Un usuario eliminado o con cambios de rol no debe conservar los privilegios de su sesión.
     private static function refreshSessionUser(): bool
     {
         $user = self::service()->findSessionUser((int) ($_SESSION['user_id'] ?? 0));
-        if ($user === null) {
+        if ($user === null || !hash_equals($user['clave_ver'], (string) ($_SESSION['clave_ver'] ?? ''))) {
             return false;
         }
 

@@ -86,6 +86,7 @@ final class PerfilController
 
         try {
             $this->service->updatePassword($id, $actual, $nueva, $confirmacion);
+            Auth::refreshAfterPasswordChange();
             $this->auditService->log(AuditActions::PERFIL_PASSWORD, 'perfil', (string) $id, "Contraseña cambiada: @" . Auth::username() . " (id #{$id})");
             Flash::set('success', 'Contraseña actualizada exitosamente.');
             Response::redirect(app_url('/perfil'));

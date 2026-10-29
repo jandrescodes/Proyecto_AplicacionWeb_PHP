@@ -106,6 +106,9 @@ final class UsuarioController
 
         try {
             $this->service->update($id, $nombres, $apellidos, $usuarioNombre, $clave, $correo);
+            if ($clave !== '' && $id === Auth::id()) {
+                Auth::refreshAfterPasswordChange();
+            }
             $this->auditService->log(AuditActions::USUARIO_UPDATED, 'usuarios', (string) $id, "Usuario actualizado: @{$usuarioNombre} (id #{$id})");
             Flash::set('success', 'Usuario actualizado exitosamente');
             Response::redirect(app_url('/usuarios'));

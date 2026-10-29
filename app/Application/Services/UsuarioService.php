@@ -79,6 +79,7 @@ final class UsuarioService
 
         if (trim($clave) !== '') {
             $this->users->updatePasswordHash($id, password_hash($clave, PASSWORD_DEFAULT));
+            $this->users->updateRememberToken($id, null, null);
         }
     }
 

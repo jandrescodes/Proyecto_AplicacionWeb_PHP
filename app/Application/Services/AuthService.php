@@ -20,7 +20,12 @@ final class AuthService implements AuthServiceInterface
             return null;
         }
 
-        return ['Usuario' => $user->usuario, 'Nombres' => $user->nombres, 'is_admin' => $user->isAdmin];
+        return [
+            'Usuario'   => $user->usuario,
+            'Nombres'   => $user->nombres,
+            'is_admin'  => $user->isAdmin,
+            'clave_ver' => self::passwordVersion($user->claveHash),
+        ];
     }
 
     public function attempt(string $username, string $password): ?array
@@ -42,9 +47,10 @@ final class AuthService implements AuthServiceInterface
             return null;
         }
 
+        $currentHash = $user->claveHash;
         if (!$isHashed) {
-            $newHash = password_hash($password, PASSWORD_DEFAULT);
-            $this->users->updatePasswordHash($user->id, $newHash);
+            $currentHash = password_hash($password, PASSWORD_DEFAULT);
+            $this->users->updatePasswordHash($user->id, $currentHash);
         }
 
         return [
@@ -54,7 +60,19 @@ final class AuthService implements AuthServiceInterface
             'Usuario'  => $user->usuario,
             'Correo'   => $user->correo,
             'is_admin' => $user->isAdmin,
+            'clave_ver' => self::passwordVersion($currentHash),
         ];
+    }
+
+    public function accountExists(string $username): bool
+    {
+        return $this->users->findByUsername($username) !== null;
+    }
+
+    // Huella de la clave vigente: si cambia en la BD, las sesiones abiertas dejan de ser válidas.
+    private static function passwordVersion(string $claveHash): string
+    {
+        return hash('sha256', $claveHash);
     }
 
     private function ttlDays(): int
@@ -101,6 +119,7 @@ final class AuthService implements AuthServiceInterface
                 'Usuario'  => $user->usuario,
                 'Correo'   => $user->correo,
                 'is_admin' => $user->isAdmin,
+                'clave_ver' => self::passwordVersion($user->claveHash),
             ],
             'newPlainToken' => $newPlain,
             'expiresAt'     => $newExpires,
