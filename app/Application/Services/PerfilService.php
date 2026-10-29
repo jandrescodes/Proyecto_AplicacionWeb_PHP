@@ -47,5 +47,6 @@ final class PerfilService
         Usuario::validatePasswordChange($nueva, $confirmacion);
 
         $this->users->updatePasswordHash($id, password_hash($nueva, PASSWORD_DEFAULT));
+        $this->users->updateRememberToken($id, null, null);
     }
 }
