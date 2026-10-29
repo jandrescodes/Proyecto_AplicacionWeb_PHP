@@ -8,6 +8,9 @@ interface AuthServiceInterface
 {
     public function attempt(string $username, string $password): ?array;
 
+    /** @return array{Usuario: string, Nombres: string, is_admin: bool}|null */
+    public function findSessionUser(int $userId): ?array;
+
     public function issueRememberToken(int $userId): string;
 
     /** @return array{user: array<string,mixed>, newPlainToken: string, expiresAt: string}|null */

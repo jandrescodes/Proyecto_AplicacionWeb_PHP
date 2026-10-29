@@ -8,6 +8,7 @@ final class AuditActions
 {
     public const AUTH_LOGIN  = 'auth.login';
     public const AUTH_LOGOUT = 'auth.logout';
+    public const AUTH_LOGIN_FAILED = 'auth.login_failed';
 
     public const TAXI_CREATED = 'taxi.created';
     public const TAXI_UPDATED = 'taxi.updated';

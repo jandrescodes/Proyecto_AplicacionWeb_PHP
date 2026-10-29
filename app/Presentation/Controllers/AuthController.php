@@ -9,6 +9,7 @@ use App\Application\Audit\AuditActions;
 use App\Application\Contracts\AuditServiceInterface;
 use Core\Auth;
 use Core\Csrf;
+use Core\LoginThrottle;
 use Core\View;
 use App\Presentation\Http\Request;
 use App\Presentation\Http\Response;
@@ -39,15 +40,27 @@ final class AuthController
 
         $username = trim((string) $this->request->post('usuario', ''));
         $password = (string) $this->request->post('password', '');
+        $ip = $this->request->ip();
+
+        if (!LoginThrottle::acquire($ip, $username)) {
+            http_response_code(429);
+            View::renderWith('auth/login', new LoginViewModel(
+                mensaje: 'Error: Demasiados intentos fallidos. Intenta de nuevo en unos minutos.',
+            ), false);
+            return;
+        }
+
         $user = $this->service->attempt($username, $password);
 
         if ($user === null) {
+            $this->auditService->log(AuditActions::AUTH_LOGIN_FAILED, 'auth', null, 'Login fallido: @' . mb_substr($username, 0, 50));
             View::renderWith('auth/login', new LoginViewModel(
                 mensaje: 'Error: El usuario o contraseña son incorrectos',
             ), false);
             return;
         }
 
+        LoginThrottle::release($ip, $username);
         Auth::login($user);
 
         if ($this->request->post('remember') === '1') {

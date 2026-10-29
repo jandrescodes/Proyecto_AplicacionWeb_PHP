@@ -9,12 +9,26 @@ use App\Application\Contracts\AuthServiceInterface;
 
 final class AuthService implements AuthServiceInterface
 {
+    private const DUMMY_HASH = '$2y$10$KTDBtIf21OJtvjau5dkCZeA7Q6Oo0zFsbuXGPwaNxN8Gd7f6Su3DS';
+
     public function __construct(private readonly UserRepositoryInterface $users) {}
+
+    public function findSessionUser(int $userId): ?array
+    {
+        $user = $userId > 0 ? $this->users->findById($userId) : null;
+        if ($user === null) {
+            return null;
+        }
+
+        return ['Usuario' => $user->usuario, 'Nombres' => $user->nombres, 'is_admin' => $user->isAdmin];
+    }
 
     public function attempt(string $username, string $password): ?array
     {
         $user = $this->users->findByUsername($username);
         if ($user === null) {
+            // Igualar el tiempo de respuesta para no revelar qué usuarios existen.
+            password_verify($password, self::DUMMY_HASH);
             return null;
         }
 

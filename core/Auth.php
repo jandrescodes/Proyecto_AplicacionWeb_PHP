@@ -43,7 +43,13 @@ final class Auth
     public static function requireLogin(): void
     {
         if (self::check()) {
-            return;
+            if (self::refreshSessionUser()) {
+                return;
+            }
+
+            self::logout();
+            header('Location: ' . app_url('/login'));
+            exit;
         }
 
         if (self::attemptRememberLogin()) {
@@ -96,6 +102,21 @@ final class Auth
         self::sendCookie($plain, time() + self::cookieTtl());
     }
 
+    // Un usuario eliminado o con cambios de rol no debe conservar los privilegios de su sesión.
+    private static function refreshSessionUser(): bool
+    {
+        $user = self::service()->findSessionUser((int) ($_SESSION['user_id'] ?? 0));
+        if ($user === null) {
+            return false;
+        }
+
+        $_SESSION['usuario']  = $user['Usuario'];
+        $_SESSION['Nombres']  = $user['Nombres'];
+        $_SESSION['is_admin'] = $user['is_admin'];
+
+        return true;
+    }
+
     private static function attemptRememberLogin(): bool
     {
         if (!self::isRememberMeEnabled()) {
@@ -132,16 +153,10 @@ final class Auth
         setcookie(self::cookieName(), $value, [
             'expires'  => $expires,
             'path'     => '/',
-            'secure'   => self::isHttps(),
+            'secure'   => request_is_https(),
             'httponly' => true,
             'samesite' => 'Lax',
         ]);
-    }
-
-    private static function isHttps(): bool
-    {
-        return (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-            || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
     }
 
     private static function isRememberMeEnabled(): bool
