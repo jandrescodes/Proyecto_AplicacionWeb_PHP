@@ -1,0 +1,4 @@
+# Solo public/ es accesible por HTTP; el resto (.env, .git, vendor, storage, database...) se bloquea.
+
+RewriteEngine On
+RewriteRule ^(?!public(/|$)) - [F,L]
