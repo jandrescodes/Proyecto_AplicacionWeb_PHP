@@ -70,7 +70,7 @@ Registro inmutable de todas las acciones del sistema, con filtros por módulo y 
 - **Perfil de usuario:** cualquier usuario autenticado edita su nombre, correo y contraseña en `/perfil`; el id siempre se resuelve vía `Auth::id()`, nunca por URL o POST (IDOR-safe).
 - **Reportes de flota:** estadísticas generales + tabla combinada (taxi + propietario + conductor), filtros server-side por marca/propietario, exportación PDF/Excel/CSV/Print vía DataTables Buttons.
 - **Asignación de turnos:** conductor + taxi + rango horario, con validación de solapamiento cross-domain (un conductor o un taxi no pueden tener dos turnos activos simultáneos).
-- **Log de auditoría inmutable:** instrumenta login/logout, CRUD de todos los módulos y cambios de perfil, con filtros por entidad y usuario.
+- **Log de auditoría inmutable:** instrumenta login/logout (incluidos los intentos fallidos), CRUD de todos los módulos y cambios de perfil, con filtros por entidad y usuario.
 - **Recuérdame:** cookie persistente (30 días por defecto), token hasheado con SHA-256 y rotado en cada uso.
 - **Manejo de errores HTTP:** vistas dedicadas para 404, 500 y errores genéricos; nunca se expone un stack trace al usuario.
 - **Tests automatizados:** suite PHPUnit 10 sobre modelos de dominio y services, ejecutada en CI (GitHub Actions) en PHP 8.2 y 8.3.
@@ -126,7 +126,7 @@ Registro inmutable de todas las acciones del sistema, con filtros por módulo y 
    http://localhost/Proyecto_AplicacionWeb_PHP/public/
    ```
 
-> **Nota sobre `.htaccess` y `APP_URL`:** el único `.htaccess` activo vive en `public/` y enruta todo a `index.php`. `APP_URL` debe incluir siempre el sufijo `/public` (ver ejemplo abajo). No existe `.htaccess` en la raíz del proyecto.
+> **Nota sobre `.htaccess` y `APP_URL`:** `public/.htaccess` enruta todo a `index.php`, y el `.htaccess` de la raíz devuelve 403 a cualquier ruta fuera de `public/` (`.env`, `.git`, `vendor`, `storage`, `database`…). `APP_URL` debe incluir siempre el sufijo `/public` (ver ejemplo abajo). En producción, apunta el VirtualHost directamente a `public/`.
 
 ## 🔑 Variables de entorno
 
@@ -140,6 +140,9 @@ APP_URL=http://localhost/Proyecto_AplicacionWeb_PHP/public
 
 # Sesión
 SESSION_LIFETIME=120        # duración en minutos (default: 120)
+
+# Proxy inverso
+TRUST_PROXY=false           # true solo si un proxy de confianza reescribe X-Forwarded-Proto
 
 # Recuérdame
 REMEMBER_ME_ENABLED=true
@@ -174,7 +177,7 @@ app/
     Persistence/
       Repositories/    ← Implementaciones PDO
       Database.php     ← Singleton PDO
-core/                  ← Framework interno (Router, Container, Auth, Csrf, Flash, View…)
+core/                  ← Framework interno (Router, Container, Auth, Csrf, Flash, View, LoginThrottle…)
 config/
   bindings.php         ← Registro de dependencias (DI container)
 bootstrap/
@@ -230,9 +233,18 @@ Request → Router → Controller → Service → Repository (PDO) → ViewModel
 - Consultas parametrizadas (PDO prepared statements) en todos los repositorios.
 - Escapado consistente de salida (`htmlspecialchars`) en todas las vistas.
 - Contraseñas con `password_hash`/`password_verify`; `session_regenerate_id()` en cada login.
+- Cookie de sesión con `HttpOnly`, `SameSite=Lax`, `Secure` (bajo HTTPS) y `use_strict_mode`.
+- Límite de intentos de login (`Core\LoginThrottle`): 5 intentos por par usuario+IP y 20 por IP cada 15 min, respuesta 429, con reserva atómica bajo `flock` y sin bloquear la cuenta ante intentos desde otras IPs; los fallos quedan en el log de auditoría. Un login con usuario inexistente tarda lo mismo que uno con clave errónea (sin enumeración por timing).
+- La sesión se revalida contra la BD en cada petición: un usuario eliminado pierde el acceso y los cambios de rol aplican de inmediato.
+- Cambiar la contraseña invalida el token de "recuérdame".
+- Solo `public/` es accesible por HTTP (`.htaccess` raíz); `.env`, `.git` y `vendor` devuelven 403.
+- Cabeceras `X-Content-Type-Options`, `X-Frame-Options` y `Referrer-Policy`; scripts de CDN con Subresource Integrity (`integrity` + `crossorigin`).
+- `X-Forwarded-Proto` solo se acepta con `TRUST_PROXY=true`.
 - Tokens de "recuérdame" hasheados con SHA-256, nunca almacenados en claro, y rotados en cada uso.
 - Recursos propios del usuario (perfil) resueltos siempre por `Auth::id()`, nunca por parámetro de request.
 - Sin exposición de trazas de error al usuario final: los errores van al log, la respuesta muestra una vista genérica.
+
+> **Pendiente antes de producción:** cambiar las credenciales de ejemplo del seeder (`admin123`) y añadir una Content-Security-Policy (el layout aún usa scripts inline).
 
 ## 📄 Licencia
 

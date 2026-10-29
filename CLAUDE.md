@@ -64,7 +64,7 @@ database/
 - `Container` — DI container with `bind()`, `singleton()`, and reflection-based autowiring. Exposes `Container::setInstance()` / `Container::getInstance()` for global static access (used by `Auth`)
 - `Router` — static GET/POST routing; resolves paths with or without `/public` prefix; supports `?route=` fallback
 - `View` — `View::renderWith(string $view, ViewModel $vm, bool $withLayout = true, bool $withDataTables = false)` is the only rendering method; no `extract()`, data is passed as a typed `ViewModel`. `withDataTables` controla si el layout carga los assets de DataTables (CSS+JS, todos con `defer`); pasarlo a `true` solo en los index que renderizan una tabla (ver "Frontend del layout admin")
-- `Auth` — session-based auth; `Auth::requireAdmin()` redirects if not logged in or if `$_SESSION['is_admin']` is not `true` (backed by the `is_admin TINYINT` column in `usuarios`). `Auth::isAdmin(): bool` exposes the flag. `Auth::id(): int` returns `$_SESSION['user_id']` — use this in user-scoped actions instead of reading id from URL/POST (prevents IDOR). `Auth::requireLogin()` also attempts transparent re-login via remember-me cookie before redirecting. `Auth::issueRememberCookie(int $userId)` issues the persistent cookie. Uses `Container::getInstance()` internally to resolve `AuthServiceInterface`.
+- `Auth` — session-based auth; `Auth::requireAdmin()` redirects if not logged in or if `$_SESSION['is_admin']` is not `true` (backed by the `is_admin TINYINT` column in `usuarios`). `Auth::isAdmin(): bool` exposes the flag. `Auth::id(): int` returns `$_SESSION['user_id']` — use this in user-scoped actions instead of reading id from URL/POST (prevents IDOR). `Auth::requireLogin()` also attempts transparent re-login via remember-me cookie before redirecting. `Auth::issueRememberCookie(int $userId)` issues the persistent cookie. `Auth::requireLogin()` revalidates the session user against the DB on every request (`AuthServiceInterface::findSessionUser()`): a deleted user is logged out and `is_admin` is refreshed. Uses `Container::getInstance()` internally to resolve `AuthServiceInterface`.
 - `Csrf` — `Csrf::token()` generates token, `Csrf::validateOrFail()` checks it in POST handlers
 - `Flash` — one-time session messages (`success`/`error`); consumed by `View::buildLayoutViewModel()` and rendered as toasts
 - `ErrorHandler` — `ErrorHandler::abort(int $code)` terminates with the appropriate HTTP error view
@@ -116,16 +116,18 @@ Cuando un módulo produce vistas combinadas de múltiples dominios sin ser una e
 
 **Módulo de audit-log (`GET /audit-log`):**
 Solo admin. Tabla `audit_log` con columnas: `id`, `usuario_id`, `usuario_nombre` (denormalizado), `accion`, `entidad`, `entidad_id`, `descripcion`, `ip`, `creado_en`. `AuditServiceInterface::log(string $accion, string $entidad, ?string $entidadId, string $descripcion): void` — best-effort, wrapeado en try/catch interno, nunca lanza. `AuditActions` en `App\Application\Audit\AuditActions` centraliza todas las constantes de acción. `AuditService` resuelve `Auth::id()` y `Auth::username()` internamente; no pasar userId/username al llamar. Todos los controllers CRUD (Taxi, Propietario, Conductor, Usuario) y PerfilController y AuthController están instrumentados:
+
 - **CRUD** (`store`, `update`, `destroy`): llamar `log()` justo después de que la operación exitosa se complete, antes del redirect/AJAX response. En `destroy()`, leer la entidad antes de borrarla, llamar `service->delete()`, luego `log()`, luego la respuesta.
-- **AuthController::login()**: llamar `log()` después de `Auth::login()` (sesión ya activa).
+- **AuthController::login()**: llamar `log()` después de `Auth::login()` (sesión ya activa). Un intento fallido se audita como `AuditActions::AUTH_LOGIN_FAILED` (`auth.login_failed`, username truncado a 50 caracteres) y suma al `LoginThrottle`.
 - **AuthController::logout()**: capturar `Auth::id()` y `Auth::username()` **antes** de `Auth::logout()` (que destruye la sesión), luego `log()` después.
 - **PerfilController**: `Auth::username()` es seguro porque la sesión sigue activa durante updateProfile/updatePassword.
-Filtros server-side por `entidad` y `usuario_id` vía GET — sin CSRF. Vista usa DataTables client-side (solo lectura, sin `delete.js`). El filtro de entidades en la vista incluye: `['auth', 'taxis', 'propietarios', 'conductores', 'usuarios', 'perfil', 'turnos']`.
+  Filtros server-side por `entidad` y `usuario_id` vía GET — sin CSRF. Vista usa DataTables client-side (solo lectura, sin `delete.js`). El filtro de entidades en la vista incluye: `['auth', 'taxis', 'propietarios', 'conductores', 'usuarios', 'perfil', 'turnos']`.
 
 **Módulo de turnos (`/turnos`):**
 Solo admin. Gestiona la asignación de turno de un conductor a un taxi en un rango de tiempo. Tabla `turnos` con columnas `id`, `conductor_id` (FK→conductores.ID), `placa` (FK→taxis.Placa), `inicio` (DATETIME), `fin` (DATETIME), `creado_en`.
 
 Rutas:
+
 - `GET /turnos` → `TurnoController::index()`
 - `GET /turnos/crear` → `TurnoController::create()`
 - `POST /turnos/crear` → `TurnoController::store()`
@@ -134,6 +136,7 @@ Rutas:
 - `POST /turnos/eliminar` → `TurnoController::destroy()`
 
 **Reglas de solapamiento (cross-domain — van en `TurnoService`, nunca en el modelo ni el repositorio):**
+
 - Un conductor no puede tener dos turnos activos simultáneos: `overlappingForConductor()` en `TurnoRepository`.
 - Un taxi no puede tener dos conductores activos simultáneos: `overlappingForPlaca()` en `TurnoRepository`.
 - SQL de solapamiento: `inicio < :fin AND fin > :inicio` (ambas columnas DATETIME en la misma tabla).
@@ -154,6 +157,7 @@ Rutas:
 **Touch targets (WCAG 2.5.8):** `.touch-lg` (44×44) y `.touch-row` (alto 44, ancho natural) en `layout.css` expanden el área clicable con un pseudo-elemento `::before` fuera del flujo — no forzar `min-height` en la caja visible. `div.dt-buttons .btn` (export de DataTables) también mide ≥44px.
 
 **A11y de vistas:**
+
 - Botones de ícono-only: `aria-label` con el identificador de la entidad (`title` queda como tooltip) y `aria-hidden="true"` en el `<i>` decorativo.
 - Todo `<i class="bi ...">` decorativo (h1, breadcrumb, input-group, botones) lleva `aria-hidden="true"`.
 - Error de servidor en formularios: alert con `id="form-error-alert" tabindex="-1"`; los inputs reciben `aria-invalid="true" aria-describedby="form-error-alert"` (patrón `$hasError`/`$errorAttrs`) y un script corto enfoca el alert.
@@ -181,3 +185,14 @@ Rutas:
 - **Echo en vistas:** usar siempre `<?= e(...)` — nunca `<?php echo e(...)`
 - **Íconos decorativos (`<i class="bi ...">`):** siempre llevan `aria-hidden="true"`; los botones de ícono-only usan `aria-label` con el identificador (no depender solo de `title`)
 - **Tabla con DataTables:** atributo `data-datatable`, nunca `style="visibility:hidden"` inline (ver "Frontend del layout admin")
+
+## Seguridad (auditoría 2026-10)
+
+- **Docroot:** el `.htaccess` de la raíz devuelve 403 a todo lo que no esté bajo `public/` (`.env`, `.git`, `vendor`, `storage`, `database`). En producción, apuntar el VirtualHost a `public/`.
+- **Sesión:** `Session::start()` fija `HttpOnly`, `SameSite=Lax`, `Secure` (según `request_is_https()`) y `use_strict_mode`. `X-Forwarded-Proto` solo se confía con `TRUST_PROXY=true`.
+- **Login:** `Core\LoginThrottle::acquire()` reserva cada intento bajo un `flock` (comprobar + registrar atómico): máx. 5 por par usuario+IP y 20 por IP cada 15 min (HTTP 429); `release()` en login correcto devuelve solo su intento y limpia el par, nunca reinicia la IP. No hay contador solo por usuario (permitiría bloquear la cuenta de otro); el usuario se normaliza como la collation `general_ci` (sin acentos/mayúsculas/espacios finales). Los fallos se auditan como `auth.login_failed`. Guarda `login_throttle.json` en `storage/logs/` porque es el único directorio de `storage/` escribible por Apache; un directorio nuevo bajo `storage/` falla en silencio.
+- **Sesión viva:** `Auth::requireLogin()` revalida el usuario en BD en cada petición (`AuthService::findSessionUser`); un usuario eliminado pierde la sesión y `is_admin` se refresca.
+- **Cambio de clave:** `PerfilService::updatePassword` borra el `remember_token`.
+- **Config:** `.env` admite `TRUST_PROXY` (default `false`) y `helpers.php` expone `request_is_https()`; usarlo en vez de leer `$_SERVER['HTTPS']`.
+- **Pendiente:** CSP (el layout tiene scripts inline), fallback de clave en texto plano en `AuthService::attempt`, credenciales `admin123` del seeder.
+- **CDN:** todo `<script src="https://...">` del layout lleva `integrity` + `crossorigin`; al subir de versión, recalcular el hash (sha384). SweetAlert2 va fijado a una versión exacta.
