@@ -26,6 +26,19 @@ if (!function_exists('e')) {
     }
 }
 
+if (!function_exists('request_is_https')) {
+    function request_is_https(): bool
+    {
+        if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+            return true;
+        }
+
+        // X-Forwarded-Proto lo controla el cliente salvo que un proxy de confianza lo reescriba.
+        return filter_var($_ENV['TRUST_PROXY'] ?? false, FILTER_VALIDATE_BOOLEAN)
+            && ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
+    }
+}
+
 if (!function_exists('app_base_url')) {
     function app_base_url(): string
     {
